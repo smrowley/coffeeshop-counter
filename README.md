@@ -30,8 +30,6 @@ DB_SECRET_NAME=$DB_APP_NAME-secret
 DB_NAME=coffeeshop
 DB_USER=delta
 DB_PWD=delta123
-JDBC_URL=jdbc:postgresql://$DB_APP_NAME.$OPENSHIFT_NAMESPACE.svc:5432/$DB_NAME
-KAFKA_BOOTSTRAP_URLS=cafe-cluster-kafka-bootstrap:9092
 ```
 
 Create a secret containing your Database info (skip this step if already created):
@@ -42,19 +40,14 @@ oc create secret generic $DB_SECRET_NAME -n $OPENSHIFT_NAMESPACE \
 --from-literal=database-password=$DB_PWD
 ```
 
-Create configmap required by service:
-```
-oc create configmap counter -n $OPENSHIFT_NAMESPACE \
---from-literal=KAFKA_BOOTSTRAP_URLS=$KAFKA_BOOTSTRAP_URLS \
---from-literal=DB_URL=$JDBC_URL \
---from-literal=QUARKUS_LOG_LEVEL=WARN \
---from-literal=QUARKUSCOFFEESHOP_LOG_LEVEL=WARN
-
-```
-
 Clone version 1.3.7 of `openshift-tekton` repository:
 ```
 git clone -b v1.3.7 https://git.delta.com/ccoe/openshift-tekton.git
+```
+
+Run the following command to create a Tekton Deployment pipeline template:
+```
+oc apply -f openshift-tekton/Java -f openshift-tekton/CommonTasks -f openshift-tekton/IaC-Deploy -n $OPENSHIFT_NAMESPACE
 ```
 
 Create tekton pipeline:

@@ -46,9 +46,13 @@ public class KafkaServiceOnOrderInTest {
 
     InMemorySource<PlaceOrderCommand> ordersIn;
 
+    InMemorySink<Object> webUpdatesSink;
+
     @BeforeEach
     public void setUp() {
         ordersIn = connector.source(ORDERS_IN);
+        webUpdatesSink = connector.sink(WEB_UPDATES);
+        webUpdatesSink.clear();
     }
 
     /**
@@ -62,7 +66,6 @@ public class KafkaServiceOnOrderInTest {
         PlaceOrderCommand placeOrderCommand = TestUtil.stubPlaceOrderCommand();
         kafkaService.orderIn(placeOrderCommand);
 
-        InMemorySink<Object> webUpdatesSink = connector.sink(WEB_UPDATES);
         //Expect one web update message in web_updates topic
         assertThat(webUpdatesSink.received().size(), equalTo(1));
         //Expected Web update: OrderUpdate[orderId='guid', itemId='guid', name='Foo', item=COFFEE_BLACK, status=IN_PROGRESS, madeBy='null']
