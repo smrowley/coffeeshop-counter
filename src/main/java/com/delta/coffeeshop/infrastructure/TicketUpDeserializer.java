@@ -1,7 +1,7 @@
 package com.delta.coffeeshop.infrastructure;
 
-import io.quarkus.kafka.client.serialization.ObjectMapperDeserializer;
 import com.delta.coffeeshop.counter.domain.valueobjects.TicketUp;
+import io.quarkus.kafka.client.serialization.ObjectMapperDeserializer;
 
 /**
  * Jackson deserializer for TicketUp value object

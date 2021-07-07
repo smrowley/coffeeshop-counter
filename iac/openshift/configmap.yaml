@@ -7,3 +7,4 @@ data:
   KAFKA_BOOTSTRAP_URLS: 'cafe-cluster-kafka-bootstrap:9092'
   QUARKUSCOFFEESHOP_LOG_LEVEL: WARN
   QUARKUS_LOG_LEVEL: WARN
+  AWS_REGION: 'us-east-1'

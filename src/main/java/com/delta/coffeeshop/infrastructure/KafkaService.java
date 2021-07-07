@@ -1,15 +1,14 @@
 package com.delta.coffeeshop.infrastructure;
 
-import com.delta.coffeeshop.counter.domain.commands.PlaceOrderCommand;
-import com.delta.coffeeshop.counter.domain.valueobjects.TicketUp;
-import io.smallrye.reactive.messaging.annotations.Blocking;
-import org.eclipse.microprofile.reactive.messaging.Incoming;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import org.eclipse.microprofile.reactive.messaging.Incoming;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.delta.coffeeshop.counter.domain.commands.PlaceOrderCommand;
+import com.delta.coffeeshop.counter.domain.valueobjects.TicketUp;
+import io.smallrye.reactive.messaging.annotations.Blocking;
 
 @ApplicationScoped
 public class KafkaService {

@@ -1,23 +1,21 @@
 package com.delta.coffeeshop.infrastructure;
 
-import com.delta.coffeeshop.counter.domain.Order;
-import com.delta.coffeeshop.counter.domain.OrderRepository;
-import com.delta.coffeeshop.counter.domain.commands.PlaceOrderCommand;
-import com.delta.coffeeshop.counter.domain.valueobjects.OrderEventResult;
-import com.delta.coffeeshop.counter.domain.valueobjects.OrderTicket;
-import com.delta.coffeeshop.counter.domain.valueobjects.OrderUpdate;
-import com.delta.coffeeshop.counter.domain.valueobjects.TicketUp;
-import io.debezium.outbox.quarkus.ExportedEvent;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Event;
+import javax.inject.Inject;
 import org.eclipse.microprofile.context.ThreadContext;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
-import javax.transaction.Transactional;
+import com.delta.coffeeshop.counter.domain.Order;
+import com.delta.coffeeshop.counter.domain.commands.PlaceOrderCommand;
+import com.delta.coffeeshop.counter.domain.dao.DynamoDBDao;
+import com.delta.coffeeshop.counter.domain.valueobjects.OrderEventResult;
+import com.delta.coffeeshop.counter.domain.valueobjects.OrderTicket;
+import com.delta.coffeeshop.counter.domain.valueobjects.OrderUpdate;
+import com.delta.coffeeshop.counter.domain.valueobjects.TicketUp;
+import io.debezium.outbox.quarkus.ExportedEvent;
 
 @ApplicationScoped
 public class OrderService {
@@ -27,7 +25,8 @@ public class OrderService {
     @Inject
     ThreadContext threadContext;
 
-    @Inject OrderRepository orderRepository;
+    @Inject
+    DynamoDBDao orderRepository;
 
     @Inject
     Event<ExportedEvent<?, ?>> event;
@@ -41,7 +40,6 @@ public class OrderService {
     @Channel("web-updates")
     Emitter<OrderUpdate> orderUpdateEmitter;
 
-    @Transactional
     public void onOrderIn(final PlaceOrderCommand placeOrderCommand) {
 
         logger.debug("onOrderIn {}", placeOrderCommand);
@@ -76,7 +74,6 @@ public class OrderService {
 
     }
 
-    @Transactional
     public void onOrderUp(final TicketUp ticketUp) {
 
         logger.debug("onOrderUp: {}", ticketUp);
@@ -94,14 +91,10 @@ public class OrderService {
 
     @Override
     public String toString() {
-        return "OrderService{" +
-                "threadContext=" + threadContext +
-                ", orderRepository=" + orderRepository +
-                ", event=" + event +
-                ", baristaEmitter=" + baristaEmitter +
-                ", kitchenEmitter=" + kitchenEmitter +
-                ", orderUpdateEmitter=" + orderUpdateEmitter +
-                '}';
+        return "OrderService{" + "threadContext=" + threadContext + ", orderRepository="
+                + orderRepository + ", event=" + event + ", baristaEmitter=" + baristaEmitter
+                + ", kitchenEmitter=" + kitchenEmitter + ", orderUpdateEmitter="
+                + orderUpdateEmitter + '}';
     }
 
 }

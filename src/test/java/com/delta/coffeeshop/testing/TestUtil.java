@@ -1,5 +1,12 @@
 package com.delta.coffeeshop.testing;
 
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import com.delta.coffeeshop.counter.domain.Item;
 import com.delta.coffeeshop.counter.domain.LineItem;
 import com.delta.coffeeshop.counter.domain.LineItemStatus;
@@ -15,23 +22,12 @@ import com.delta.coffeeshop.counter.domain.valueobjects.OrderTicket;
 import com.delta.coffeeshop.counter.domain.valueobjects.TicketUp;
 import io.debezium.outbox.quarkus.ExportedEvent;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
 public class TestUtil {
 
     public static PlaceOrderCommand stubPlaceOrderCommand() {
-        return new PlaceOrderCommand(
-                UUID.randomUUID().toString(),
-                OrderSource.WEB,
-                Location.ATLANTA,
-                UUID.randomUUID().toString(),
-                Optional.of(stubSingleBaristaItem()),
-                Optional.empty());
+        return new PlaceOrderCommand(UUID.randomUUID().toString(), OrderSource.WEB,
+                Location.ATLANTA, UUID.randomUUID().toString(),
+                Optional.of(stubSingleBaristaItem()), Optional.empty());
     };
 
     private static List<CommandItem> stubSingleBaristaItem() {
@@ -39,16 +35,10 @@ public class TestUtil {
     }
 
     public static Order stubOrder() {
-        Order order = new Order(
-                UUID.randomUUID().toString(),
-                OrderSource.COUNTER,
-                Location.RALEIGH,
-                UUID.randomUUID().toString(),
-                Instant.now(),
-                OrderStatus.PLACED,
-                null,
-                null);
-        order.addBaristaLineItem(new LineItem(Item.COFFEE_BLACK, "Rocky", BigDecimal.valueOf(3.00), LineItemStatus.PLACED, order));
+        Order order = new Order(UUID.randomUUID().toString(), OrderSource.COUNTER, Location.RALEIGH,
+                UUID.randomUUID().toString(), Instant.now(), OrderStatus.PLACED, null, null);
+        order.addBaristaLineItem(new LineItem(Item.COFFEE_BLACK, "Rocky", BigDecimal.valueOf(3.00),
+                LineItemStatus.PLACED));
         return order;
     }
 
@@ -75,28 +65,19 @@ public class TestUtil {
     }
 
     private static List<OrderTicket> stubBaristaTickets() {
-        return Arrays.asList(new OrderTicket(UUID.randomUUID().toString(), UUID.randomUUID().toString(), Item.COFFEE_BLACK, "Rocky"));
+        return Arrays.asList(new OrderTicket(UUID.randomUUID().toString(),
+                UUID.randomUUID().toString(), Item.COFFEE_BLACK, "Rocky"));
     }
 
     public static TicketUp stubOrderTicketUp() {
 
-        return new TicketUp(
-                UUID.randomUUID().toString(),
-                UUID.randomUUID().toString(),
-                Item.COFFEE_BLACK,
-                "Capt. Kirk",
-                "Mr. Spock"
-        );
+        return new TicketUp(UUID.randomUUID().toString(), UUID.randomUUID().toString(),
+                Item.COFFEE_BLACK, "Capt. Kirk", "Mr. Spock");
     }
 
     public static TicketUp stubOrderTicketUp(String orderId) {
 
-        return new TicketUp(
-                orderId,
-                UUID.randomUUID().toString(),
-                Item.COFFEE_BLACK,
-                "Capt. Kirk",
-                "Mr. Spock"
-        );
+        return new TicketUp(orderId, UUID.randomUUID().toString(), Item.COFFEE_BLACK, "Capt. Kirk",
+                "Mr. Spock");
     }
 }

@@ -1,10 +1,10 @@
 package com.delta.coffeeshop.counter.domain.commands;
 
+import java.math.BigDecimal;
+import java.util.Objects;
+import java.util.StringJoiner;
 import com.delta.coffeeshop.counter.domain.Item;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-
-import java.math.BigDecimal;
-import java.util.StringJoiner;
 
 @RegisterForReflection
 public class CommandItem {
@@ -24,22 +24,23 @@ public class CommandItem {
     @Override
     public String toString() {
         return new StringJoiner(", ", CommandItem.class.getSimpleName() + "[", "]")
-                .add("item=" + item)
-                .add("name='" + name + "'")
-                .add("price=" + price)
-                .toString();
+                .add("item=" + item).add("name='" + name + "'").add("price=" + price).toString();
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
 
         CommandItem that = (CommandItem) o;
 
-        if (item != that.item) return false;
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        return price != null ? price.equals(that.price) : that.price == null;
+        if (item != that.item)
+            return false;
+        if (!Objects.equals(name, that.name))
+            return false;
+        return Objects.equals(price, that.price);
     }
 
     @Override
