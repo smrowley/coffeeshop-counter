@@ -1,9 +1,8 @@
 package com.delta.coffeeshop.counter.domain.valueobjects;
 
-import com.delta.coffeeshop.counter.domain.Item;
-
 import java.time.Instant;
 import java.util.StringJoiner;
+import com.delta.coffeeshop.counter.domain.Item;
 
 public class TicketUp {
 
@@ -31,27 +30,31 @@ public class TicketUp {
     @Override
     public String toString() {
         return new StringJoiner(", ", TicketUp.class.getSimpleName() + "[", "]")
-                .add("orderId='" + orderId + "'")
-                .add("lineItemId='" + lineItemId + "'")
-                .add("item=" + item)
-                .add("name='" + name + "'")
-                .add("timestamp=" + timestamp)
-                .add("madeBy='" + madeBy + "'")
-                .toString();
+                .add("orderId='" + orderId + "'").add("lineItemId='" + lineItemId + "'")
+                .add("item=" + item).add("name='" + name + "'").add("timestamp=" + timestamp)
+                .add("madeBy='" + madeBy + "'").toString();
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
 
         TicketUp ticketUp = (TicketUp) o;
 
-        if (orderId != null ? !orderId.equals(ticketUp.orderId) : ticketUp.orderId != null) return false;
-        if (lineItemId != null ? !lineItemId.equals(ticketUp.lineItemId) : ticketUp.lineItemId != null) return false;
-        if (item != ticketUp.item) return false;
-        if (name != null ? !name.equals(ticketUp.name) : ticketUp.name != null) return false;
-        if (timestamp != null ? !timestamp.equals(ticketUp.timestamp) : ticketUp.timestamp != null) return false;
+        if (orderId != null ? !orderId.equals(ticketUp.orderId) : ticketUp.orderId != null)
+            return false;
+        if (lineItemId != null ? !lineItemId.equals(ticketUp.lineItemId)
+                : ticketUp.lineItemId != null)
+            return false;
+        if (item != ticketUp.item)
+            return false;
+        if (name != null ? !name.equals(ticketUp.name) : ticketUp.name != null)
+            return false;
+        if (timestamp != null ? !timestamp.equals(ticketUp.timestamp) : ticketUp.timestamp != null)
+            return false;
         return madeBy != null ? madeBy.equals(ticketUp.madeBy) : ticketUp.madeBy == null;
     }
 

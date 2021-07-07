@@ -32,6 +32,9 @@ spec:
               value: /var/run/secrets/java.io/keystores/truststore.jks
             - name: password
               value: changeit
+          envFrom:
+            - secretRef:
+                name: counter-aws-ca-secret
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: keystore-volume
@@ -46,6 +49,10 @@ spec:
               CERTIFICATE-----/' '{*}' && for file in crt-*; do keytool -import
               -noprompt -keystore $truststore_jks -file $file -storepass
               $password -alias service-$file; done
+              && echo $aws_cert > /tmp/aws-decoded.cer
+              && keytool -import -noprompt -keystore $truststore_jks -file /tmp/aws-decoded.cer
+              -storepass $password -alias service-aws-ca
+      serviceAccount: quarkuscoffee-service-account
       containers:
         - readinessProbe:
             httpGet:
@@ -87,7 +94,6 @@ spec:
           envFrom:
             - configMapRef:
                 name: counter
-
           ports:
             - name: jolokia
               containerPort: 8778

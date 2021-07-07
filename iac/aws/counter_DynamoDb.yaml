@@ -1,0 +1,106 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AWS CloudFormation Template To Create a DynamoDB Table.'
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+    - Label:
+        default: 'DynamoDB Parameters'
+      Parameters:
+      - ReadCapacityUnits
+      - WriteCapacityUnits
+      - BillingMode
+      - SSEEncryptionKey
+    - Label:
+        default: 'AWS DynamoDb Tagging Parameters'
+      Parameters:
+      - costCenterParameter
+      - iServerIDParameter
+      - dataClassificationParameter
+      - supportGroupParameter
+      - assignmentGroupParameter
+      - appCriticalityParameter
+Parameters:
+  BillingMode:
+    Description: Provisioned scaling mode
+    Type: String
+    Default: 'PAY_PER_REQUEST'
+    AllowedValues:
+      - 'PROVISIONED '
+      - 'PAY_PER_REQUEST'      
+  # SSEncryptionKey:
+    # Description: KMS key to use for encryption of dynamo Db table. A CloudHSM back CMK must be used for resources with a restricted data classification, and a CMK must be used for resources with a confidential data classification, and a AWS KMS Key must be used for resources with a internal data classification, and a AWS KMS Key must be used for resources with a public data classification.
+    # Type: String
+  costCenterParameter:
+    Description: The value for the costCenter tag.
+    Type: String
+    Default: TEST
+  iServerIDParameter:
+    Description: The value for the iServerID
+    Type: String
+    Default: TEST
+  dataClassificationParameter:
+    Description: The value for the dataClassificationParameter tag.
+    Type: String
+    AllowedValues: ['restricted','confidential','internal', 'public']
+    Default: internal
+  supportGroupParameter:
+    Description: The value for the supportGroup.
+    Type: String
+    Default: TEST
+  assignmentGroupParameter:
+    Description: The value for the assignmentGroup
+    Type: String
+    Default: TEST
+  appCriticalityParameter:
+    Type: String
+    Description: The value for the appCriticality tag
+    AllowedValues: ['MV', 'MC', 'BC', 'BE', 'B']
+    Default: B
+  appenv:
+    Type : 'AWS::SSM::Parameter::Value<String>'
+    Description: The name of the VPC Endpoint 
+    Default: "/delta/account/environment"
+
+Conditions:
+  istestEnv: !Equals [!Ref appenv, "sandbox"]
+Resources:
+  Orders:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: !Ref BillingMode
+      AttributeDefinitions:
+      - AttributeName: orderId
+        AttributeType: S
+      KeySchema:
+      - AttributeName: orderId
+        KeyType: HASH
+      # SSESpecification:
+        # KMSMasterKeyId: !Ref 'SSEncryptionKey'
+        # SSEEnabled: true
+        # SSEType: KMS
+      TableName:
+        Fn::If:
+        - istestEnv
+        - !Sub '${AWS::StackName}-Orders'
+        - Orders
+ 
+
+      Tags:
+        - Key: assignmentGroup
+          Value: !Ref assignmentGroupParameter
+        - Key: costCenter
+          Value: !Ref costCenterParameter
+        - Key: dataClassification
+          Value: !Ref dataClassificationParameter
+        - Key: iServerID
+          Value: !Ref iServerIDParameter
+        - Key: supportGroup
+          Value: !Ref supportGroupParameter
+        - Key: appCriticalityTier
+          Value: !Ref appCriticalityParameter
+Outputs:
+  DynamodbTableARN:
+    Value: !GetAtt Orders.Arn
+    Description: Name of the newly created DynamoDB table
+    Export:
+      Name: DynamodbTableARN

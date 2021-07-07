@@ -1,16 +1,15 @@
 package com.delta.coffeeshop.counter.domain.events;
 
+import java.time.Instant;
+import com.delta.coffeeshop.counter.domain.LineItem;
 import com.delta.coffeeshop.counter.domain.Order;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.debezium.outbox.quarkus.ExportedEvent;
-import com.delta.coffeeshop.counter.domain.LineItem;
 
-import java.time.Instant;
-
-public class LoyaltyMemberPurchaseEvent  implements ExportedEvent<String, JsonNode> {
+public class LoyaltyMemberPurchaseEvent implements ExportedEvent<String, JsonNode> {
 
     private static ObjectMapper mapper = new ObjectMapper();
 
@@ -22,45 +21,41 @@ public class LoyaltyMemberPurchaseEvent  implements ExportedEvent<String, JsonNo
     private final JsonNode jsonNode;
     private final Instant timestamp;
 
-    private LoyaltyMemberPurchaseEvent(String loyaltyMemberId, String orderId, JsonNode jsonNode, Instant timestamp) {
+    private LoyaltyMemberPurchaseEvent(String loyaltyMemberId, String orderId, JsonNode jsonNode,
+            Instant timestamp) {
         this.loyaltyMemberId = loyaltyMemberId;
         this.orderId = orderId;
         this.jsonNode = jsonNode;
         this.timestamp = timestamp;
     }
 
-    public static LoyaltyMemberPurchaseEvent of(final Order order){
-        ObjectNode asJson = mapper.createObjectNode()
-                .put("loyaltyMemberId", order.getLoyaltyMemberId().get())
-                .put("orderId", order.getOrderId())
-                .put("orderSource", order.getOrderSource().toString())
-                .put("timestamp", order.getTimestamp().toString());
+    public static LoyaltyMemberPurchaseEvent of(final Order order) {
+        ObjectNode asJson =
+                mapper.createObjectNode().put("loyaltyMemberId", order.getLoyaltyMemberId().get())
+                        .put("orderId", order.getOrderId())
+                        .put("orderSource", order.getOrderSource().toString())
+                        .put("timestamp", order.getTimestamp().toString());
 
         if (order.getBaristaLineItems().isPresent()) {
-            ArrayNode baristaLineItems = asJson.putArray("baristaLineItems") ;
+            ArrayNode baristaLineItems = asJson.putArray("baristaLineItems");
             for (LineItem lineItem : order.getBaristaLineItems().get()) {
                 ObjectNode lineAsJon = mapper.createObjectNode()
-                        .put("item", lineItem.getItem().toString())
-                        .put("name", lineItem.getName());
+                        .put("item", lineItem.getItem().toString()).put("name", lineItem.getName());
                 baristaLineItems.add(lineAsJon);
             }
         }
 
         if (order.getKitchenLineItems().isPresent()) {
-            ArrayNode kitchenLineItems = asJson.putArray("kitchenLineItems") ;
+            ArrayNode kitchenLineItems = asJson.putArray("kitchenLineItems");
             for (LineItem lineItem : order.getKitchenLineItems().get()) {
                 ObjectNode lineAsJon = mapper.createObjectNode()
-                        .put("item", lineItem.getItem().toString())
-                        .put("name", lineItem.getName());
+                        .put("item", lineItem.getItem().toString()).put("name", lineItem.getName());
                 kitchenLineItems.add(lineAsJon);
             }
         }
 
-        return new LoyaltyMemberPurchaseEvent(
-                order.getLoyaltyMemberId().get(),
-                order.getOrderId(),
-                asJson,
-                order.getTimestamp());
+        return new LoyaltyMemberPurchaseEvent(order.getLoyaltyMemberId().get(), order.getOrderId(),
+                asJson, order.getTimestamp());
     }
 
     @Override
