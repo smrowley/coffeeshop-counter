@@ -24,7 +24,7 @@ Parameters:
     Description: AWS role name used by the app
     Type: String
     Default: 'delegate-admin-quarkuscoffee-dynamodb-role'
-    
+
   DynamodbTableARN:
     Description: AWS dynamodb table used by the app
     Type: String
@@ -76,7 +76,7 @@ Resources:
             - dynamodb:Query
             - dynamodb:Scan
             Resource:
-            - !ImportValue DynamodbTableARN 
+            - !Ref DynamodbTableARN
 
 Outputs:
 
