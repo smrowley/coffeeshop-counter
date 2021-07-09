@@ -1,4 +1,4 @@
-# coffesshop counter service
+# coffeeshop counter service
 
 This project implements an event driven counter microservice for the Quarkus coffeeshop project
 
@@ -13,26 +13,30 @@ Run the folllowing to build and package the application and confirm unit tests a
 ### Prerequisites for running the application
 Before you run, create Orders table in DynamoDb, IAM role in AWS account that has permissions to the table(role name should start with delegate-admin-) and Service account in Openshift. Sample commands are as follows-:
 
-```
 Command to create Orders table
+```
 aws cloudformation create-stack --stack-name coffee-dynamo --template-body=file://iac/aws/counter_DynamoDb.yaml --region=us-east-1 --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND 
+TABLE_ARN=$(aws dynamodb describe-table --table-name Orders --query 'Table.TableArn' --region us-east-1 | sed 's/"//g')
 ```
 
-
-```
 Command to create IAM role
-aws cloudformation create-stack --stack-name "delegate-admin-quarkuscoffee-dynamodb-role-stack"  --template-body file://iac/aws/iam_role.yaml --parameters  ParameterKey=AppNamespace,ParameterValue="quarkuscoffee" ParameterKey=AppServiceAccount,ParameterValue="quarkuscoffee-service-account" ParameterKey=AppRoleName,ParameterValue="delegate-admin-quarkuscoffee-dynamodb-role" ParameterKey=DynamodbTableARN,ParameterValue=${TABLE_ARN} --capabilities CAPABILITY_NAMED_IAM
+```
+OPENSHIFT_NAMESPACE=quarkuscoffee
+ROLE_NAME=delegate-admin-${OPENSHIFT_NAMESPACE}-dynamodb-role
+aws cloudformation create-stack --stack-name "${ROLE_NAME}-stack"  \
+--template-body file://iac/aws/iam_role.yaml --parameters  ParameterKey=AppNamespace,ParameterValue=${OPENSHIFT_NAMESPACE} \
+ParameterKey=AppServiceAccount,ParameterValue="quarkuscoffee-service-account" \
+ParameterKey=AppRoleName,ParameterValue=$ROLE_NAME \
+ParameterKey=DynamodbTableARN,ParameterValue=${TABLE_ARN} --capabilities CAPABILITY_NAMED_IAM
 ```
 
 Run the below command to get the IAM Role ARN
-
 ```
-ROLE_ARN=$(aws iam get-role --role-name "delegate-admin-quarkuscoffee-dynamodb-role" --query 'Role.Arn' | sed 's/"//g')
-TABLE_NAME=$(aws dynamodb describe-table --table-name Orders --query 'Table.TableArn' --region us-east-1 | sed 's/"//g')
+ROLE_ARN=$(aws iam get-role --role-name $ROLE_NAME --query 'Role.Arn' | sed 's/"//g')
 ```
 
-```
 Create service account
+```
 oc process -f iac/openshift/service-account.yaml -p role_arn=$ROLE_ARN service_account="quarkuscoffee-service-account" | oc apply -n $OPENSHIFT_NAMESPACE -f -
 ```
 
@@ -50,7 +54,6 @@ Install infrastructure components by following instructions from: https://git.de
 Export the following environment variables
 
 ```
-OPENSHIFT_NAMESPACE=quarkuscoffee
 DB_APP_NAME=coffeeshopdb
 DB_SECRET_NAME=$DB_APP_NAME-secret
 DB_NAME=coffeeshop
