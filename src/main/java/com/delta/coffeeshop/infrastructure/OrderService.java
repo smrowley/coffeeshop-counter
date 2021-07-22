@@ -1,7 +1,6 @@
 package com.delta.coffeeshop.infrastructure;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import org.eclipse.microprofile.context.ThreadContext;
 import org.eclipse.microprofile.reactive.messaging.Channel;
@@ -15,7 +14,6 @@ import com.delta.coffeeshop.counter.domain.valueobjects.OrderEventResult;
 import com.delta.coffeeshop.counter.domain.valueobjects.OrderTicket;
 import com.delta.coffeeshop.counter.domain.valueobjects.OrderUpdate;
 import com.delta.coffeeshop.counter.domain.valueobjects.TicketUp;
-import io.debezium.outbox.quarkus.ExportedEvent;
 
 @ApplicationScoped
 public class OrderService {
@@ -27,9 +25,6 @@ public class OrderService {
 
     @Inject
     DynamoDBDao orderRepository;
-
-    @Inject
-    Event<ExportedEvent<?, ?>> event;
 
     @Channel("barista")
     Emitter<OrderTicket> baristaEmitter;
@@ -50,10 +45,9 @@ public class OrderService {
 
         orderRepository.persist(orderEventResult.getOrder());
 
-        orderEventResult.getOutboxEvents().forEach(exportedEvent -> {
-            logger.debug("Firing event: {}", exportedEvent);
-            event.fire(exportedEvent);
-        });
+        /*
+         * orderEventResult.getOutboxEvents().forEach(exportedEvent -> { logger.debug("Firing event: {}", exportedEvent); event.fire(exportedEvent); });
+         */
 
         if (orderEventResult.getBaristaTickets().isPresent()) {
             orderEventResult.getBaristaTickets().get().forEach(baristaTicket -> {
@@ -84,17 +78,13 @@ public class OrderService {
         orderEventResult.getOrderUpdates().forEach(orderUpdate -> {
             orderUpdateEmitter.send(orderUpdate);
         });
-        orderEventResult.getOutboxEvents().forEach(exportedEvent -> {
-            event.fire(exportedEvent);
-        });
     }
 
     @Override
     public String toString() {
         return "OrderService{" + "threadContext=" + threadContext + ", orderRepository="
-                + orderRepository + ", event=" + event + ", baristaEmitter=" + baristaEmitter
-                + ", kitchenEmitter=" + kitchenEmitter + ", orderUpdateEmitter="
-                + orderUpdateEmitter + '}';
+                + orderRepository + ", baristaEmitter=" + baristaEmitter + ", kitchenEmitter="
+                + kitchenEmitter + ", orderUpdateEmitter=" + orderUpdateEmitter + '}';
     }
 
 }

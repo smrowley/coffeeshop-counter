@@ -14,9 +14,6 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTypeConverted;
 import com.delta.coffeeshop.counter.domain.commands.PlaceOrderCommand;
-import com.delta.coffeeshop.counter.domain.events.LoyaltyMemberPurchaseEvent;
-import com.delta.coffeeshop.counter.domain.events.OrderCreatedEvent;
-import com.delta.coffeeshop.counter.domain.events.OrderUpdatedEvent;
 import com.delta.coffeeshop.counter.domain.valueobjects.OrderEventResult;
 import com.delta.coffeeshop.counter.domain.valueobjects.OrderTicket;
 import com.delta.coffeeshop.counter.domain.valueobjects.OrderUpdate;
@@ -96,7 +93,7 @@ public class Order {
         }
 
         // create the domain event
-        OrderUpdatedEvent orderUpdatedEvent = OrderUpdatedEvent.of(this);
+       // OrderUpdatedEvent orderUpdatedEvent = OrderUpdatedEvent.of(this);
 
         // create the update value object
         OrderUpdate orderUpdate = new OrderUpdate(ticketUp.getOrderId(), ticketUp.getLineItemId(),
@@ -104,7 +101,7 @@ public class Order {
 
         OrderEventResult orderEventResult = new OrderEventResult();
         orderEventResult.setOrder(this);
-        orderEventResult.addEvent(orderUpdatedEvent);
+        //orderEventResult.addEvent(orderUpdatedEvent);
         orderEventResult.setOrderUpdates(new ArrayList<>() {
             {
                 add(orderUpdate);
@@ -172,14 +169,14 @@ public class Order {
         }
 
         orderEventResult.setOrder(order);
-        orderEventResult.addEvent(OrderCreatedEvent.of(order));
+        //orderEventResult.addEvent(OrderCreatedEvent.of(order));
         logger.debug("Added Order and OrderCreatedEvent to OrderEventResult: {}", orderEventResult);
 
         // if this order was placed by a Loyalty Member add the appropriate event
         if (placeOrderCommand.getLoyaltyMemberId().isPresent()) {
             logger.debug("creating LoyaltyMemberPurchaseEvent from {}", placeOrderCommand);
             order.setLoyaltyMemberId(Optional.of(placeOrderCommand.getLoyaltyMemberId().get()));
-            orderEventResult.addEvent(LoyaltyMemberPurchaseEvent.of(order));
+           // orderEventResult.addEvent(LoyaltyMemberPurchaseEvent.of(order));
         }
 
         logger.debug("returning {}", orderEventResult);
