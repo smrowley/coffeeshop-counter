@@ -92,16 +92,12 @@ public class Order {
 
         }
 
-        // create the domain event
-       // OrderUpdatedEvent orderUpdatedEvent = OrderUpdatedEvent.of(this);
-
         // create the update value object
         OrderUpdate orderUpdate = new OrderUpdate(ticketUp.getOrderId(), ticketUp.getLineItemId(),
                 ticketUp.getName(), ticketUp.getItem(), OrderStatus.FULFILLED, ticketUp.madeBy);
 
         OrderEventResult orderEventResult = new OrderEventResult();
         orderEventResult.setOrder(this);
-        //orderEventResult.addEvent(orderUpdatedEvent);
         orderEventResult.setOrderUpdates(new ArrayList<>() {
             {
                 add(orderUpdate);
@@ -169,14 +165,12 @@ public class Order {
         }
 
         orderEventResult.setOrder(order);
-        //orderEventResult.addEvent(OrderCreatedEvent.of(order));
         logger.debug("Added Order and OrderCreatedEvent to OrderEventResult: {}", orderEventResult);
 
         // if this order was placed by a Loyalty Member add the appropriate event
         if (placeOrderCommand.getLoyaltyMemberId().isPresent()) {
             logger.debug("creating LoyaltyMemberPurchaseEvent from {}", placeOrderCommand);
             order.setLoyaltyMemberId(Optional.of(placeOrderCommand.getLoyaltyMemberId().get()));
-           // orderEventResult.addEvent(LoyaltyMemberPurchaseEvent.of(order));
         }
 
         logger.debug("returning {}", orderEventResult);
