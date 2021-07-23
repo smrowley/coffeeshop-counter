@@ -45,9 +45,6 @@ public class OrderService {
 
         orderRepository.persist(orderEventResult.getOrder());
 
-        /*
-         * orderEventResult.getOutboxEvents().forEach(exportedEvent -> { logger.debug("Firing event: {}", exportedEvent); event.fire(exportedEvent); });
-         */
 
         if (orderEventResult.getBaristaTickets().isPresent()) {
             orderEventResult.getBaristaTickets().get().forEach(baristaTicket -> {
