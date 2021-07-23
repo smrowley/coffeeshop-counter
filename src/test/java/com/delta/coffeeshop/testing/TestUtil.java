@@ -16,11 +16,9 @@ import com.delta.coffeeshop.counter.domain.OrderSource;
 import com.delta.coffeeshop.counter.domain.OrderStatus;
 import com.delta.coffeeshop.counter.domain.commands.CommandItem;
 import com.delta.coffeeshop.counter.domain.commands.PlaceOrderCommand;
-import com.delta.coffeeshop.counter.domain.events.OrderCreatedEvent;
 import com.delta.coffeeshop.counter.domain.valueobjects.OrderEventResult;
 import com.delta.coffeeshop.counter.domain.valueobjects.OrderTicket;
 import com.delta.coffeeshop.counter.domain.valueobjects.TicketUp;
-import io.debezium.outbox.quarkus.ExportedEvent;
 
 public class TestUtil {
 
@@ -56,13 +54,10 @@ public class TestUtil {
 
         orderEventResult.setOrder(order);
         orderEventResult.setBaristaTickets(TestUtil.stubBaristaTickets());
-        orderEventResult.setOutboxEvents(mockOrderInEvent());
         return orderEventResult;
     }
 
-    private static List<ExportedEvent> mockOrderInEvent() {
-        return Arrays.asList(OrderCreatedEvent.of(stubOrder()));
-    }
+   
 
     private static List<OrderTicket> stubBaristaTickets() {
         return Arrays.asList(new OrderTicket(UUID.randomUUID().toString(),
