@@ -1,0 +1,77 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: aws-cli-cloudformation
+spec:
+  description: >-
+    This task performs operations on Amazon Web Services resources using aws.
+
+  workspaces:
+    - name: source
+      description: The workspace containing the CFTs
+
+  params:
+    - name: template-file
+      description: Name of the template file
+      type: string
+    - name: parameters-file
+      description: AWS cli arguments to be passed
+      type: string
+    - name: capabilities-file
+      description: AWS cli arguments to be passed
+      type: string
+    - name: context-dir
+      description: Context directory where CTFs are located
+      type: string
+    - name: region
+      type: string
+    - name: app-name
+      type: string
+      default: quarkuscoffee-counter
+
+  steps:
+  - name: aws-cli
+    image: quay.io/gitops-mirror/amazon-aws-cli:latest
+    imagePullPolicy: IfNotPresent
+    script:  |
+      STACK_NAME=$(params.app-name)-tekton-iac-aws-stack
+      STACK_STATUS=`aws cloudformation describe-stacks --stack-name $STACK_NAME --query 'Stacks[0].StackStatus' --region $(params.region) || :`
+
+      if [ -z "$STACK_STATUS" ];
+      then
+        aws cloudformation create-stack --stack-name $STACK_NAME --region $(params.region) \
+        --template-body file:///workspace/source/$(params.context-dir)/$(params.template-file) \
+        --parameters file:///workspace/source/$(params.context-dir)/$(params.parameters-file) \
+        --capabilities file:///workspace/source/$(params.context-dir)/$(params.capabilities-file);
+      else
+        aws cloudformation update-stack --stack-name $STACK_NAME --region $(params.region) \
+        --template-body file:///workspace/source/$(params.context-dir)/$(params.template-file) \
+        --parameters file:///workspace/source/$(params.context-dir)/$(params.parameters-file) \
+        --capabilities file:///workspace/source/$(params.context-dir)/$(params.capabilities-file) \
+        || :;
+      fi
+
+      while [ true ]; 
+      do
+        STACK_STATUS=`aws cloudformation describe-stacks --stack-name $STACK_NAME --query 'Stacks[0].StackStatus' --region $(params.region)`
+
+        if [ $STACK_STATUS = '"CREATE_COMPLETE"' ] || [ $STACK_STATUS = '"UPDATE_COMPLETE"' ];
+        then
+          echo $STACK_NAME successfully executed with status $STACK_STATUS.
+          exit 0
+        elif [ $STACK_STATUS = '"ROLLBACK_COMPLETE"' ];
+        then 
+          echo $STACK_NAME failed execution with status $STACK_STATUS.  This stack is now unactionable.  Please delete the stack before running again.
+          exit 1
+        elif [ $STACK_STATUS = '"UPDATE_ROLLBACK_COMPLETE"' ];
+        then
+          echo $STACK_NAME failed execution with status $STACK_STATUS.
+          exit 1
+        fi
+
+        echo Status was $STACK_STATUS.  Waiting 30 seconds.
+        sleep 30
+
+      done
+
+
