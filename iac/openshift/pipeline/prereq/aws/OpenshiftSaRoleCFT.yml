@@ -1,0 +1,125 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: 'App role Tekton pipeline to action aws resources'
+
+Parameters:
+
+  OidcIssuer:
+    Description: SSM Parameter containing OpenID Connect issuer name for desired OpenShift cluster
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/delta/openshift/ccoe-dev-vstfb/oidc_issuer'
+    AllowedPattern: '^/delta/openshift/[^/]+/oidc_issuer$'
+  AppNamespace:
+    Description: OpenShift namespace containing the app
+    Type: String
+    Default: 'quarkuscoffee'
+  AppName:
+    Description: Name of the application
+    Type: String
+    Default: 'counter'
+  AppServiceAccount:
+    Description: OpenShift service account used by the app
+    Type: String
+    Default: 'quarkuscoffee-counter-iac-aws-sa'
+  TableName:
+    Description: Name of the DynamoDb table to be created or modified
+    Type: 'String'
+    Default: 'Orders'
+  AppRoleName:
+    Description: AWS Role name used by the app
+    Type: String
+    Default: 'delegate-admin-quarkuscoffee-counter-dynamodb-role'
+
+Resources:
+
+  AppRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'delegate-admin-${AppNamespace}-${AppName}-tekton-cft-role'
+      Description: Role for Openshift Tekton pipeline to use for creating AWS objects via CloudformationTemplate
+      AssumeRolePolicyDocument: !Sub |
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "AllowOidcAssumeRole",
+              "Effect": "Allow",
+              "Action": "sts:AssumeRoleWithWebIdentity",
+              "Principal": {
+                "Federated": [
+                  "arn:aws:iam::${AWS::AccountId}:oidc-provider/${OidcIssuer}"
+                ]
+              },
+              "Condition": {
+                "StringEquals": {
+                  "${OidcIssuer}:aud": "sts.amazonaws.com",
+                  "${OidcIssuer}:sub": "system:serviceaccount:${AppNamespace}:${AppServiceAccount}"
+                }
+              }
+            }
+          ]
+        }
+      PermissionsBoundary: !Sub 'arn:aws:iam::${AWS::AccountId}:policy/cft-developer-boundary-policy'
+      Policies:
+      - PolicyName: !Sub '${AppNamespace}-${AppName}-iam-dynamo-table-policy'
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Sid: createDynamoTable
+            Effect: Allow
+            Action:
+            - "dynamodb:CreateTable"
+            - "dynamodb:DeleteTable"
+            - "dynamodb:DescribeTable"
+            - "dynamodb:UpdateTable"
+            - "dynamodb:TagResource"
+            - "dynamodb:UntagResource"
+            - "dynamodb:ListTagsOfResource"
+            Resource:  !Sub 'arn:aws:dynamodb:us-east-1:167772905579:table/${TableName}'
+      - PolicyName: !Sub '${AppNamespace}-${AppName}-iam-validate-template-policy'
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Sid: validateTemplate
+            Effect: Allow
+            Action:
+            - "cloudformation:ValidateTemplate"
+            Resource:  "*"
+      - PolicyName: !Sub '${AppNamespace}-${AppName}-iam-stack-policy'
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Sid: createStack
+            Effect: Allow
+            Action:
+            - "cloudformation:CreateStack"
+            - "cloudformation:UpdateStack"
+            - "cloudformation:DescribeStacks"
+            Resource:  !Sub 'arn:aws:cloudformation:us-east-1:167772905579:stack/${AppNamespace}-${AppName}-tekton-iac-aws-stack/*'
+      - PolicyName: !Sub '${AppNamespace}-${AppName}-iam-ssm-policy'
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Sid: systemManagerPolicy
+            Effect: Allow
+            Action:
+            - "ssm:GetParameters"
+            Resource:  "arn:aws:ssm:us-east-1:167772905579:parameter/*"
+      - PolicyName: !Sub '${AppNamespace}-${AppName}-iam-role-policy'
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Sid: iamRolePolicy
+            Effect: Allow
+            Action:
+            - "iam:GetRole"
+            - "iam:CreateRole"
+            - "iam:GetRolePolicy"
+            - "iam:PutRolePolicy"
+            - "iam:UpdateAssumeRolePolicy"
+            Resource:  !Sub 'arn:aws:iam::167772905579:role/${AppRoleName}'
+
+Outputs:
+  AppRoleArn:
+    Description: Test app role ARN
+    Value: !GetAtt AppRole.Arn

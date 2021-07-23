@@ -20,6 +20,7 @@ Metadata:
       - assignmentGroupParameter
       - appCriticalityParameter
 Parameters:
+  # Dynamo parameters
   BillingMode:
     Description: Provisioned scaling mode
     Type: String
@@ -60,6 +61,33 @@ Parameters:
     Type : 'AWS::SSM::Parameter::Value<String>'
     Description: The name of the VPC Endpoint 
     Default: "/delta/account/environment"
+  TableName:
+    Type: String
+    Description: Table to create in DynamoDb
+    Default: Orders
+
+  # Client Role parameters
+  OidcIssuer:
+    Description: SSM Parameter containing OpenID Connect issuer name for desired OpenShift cluster
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/delta/openshift/ccoe-dev-vstfb/oidc_issuer'
+    AllowedPattern: '^/delta/openshift/[^/]+/oidc_issuer$'
+  AppNamespace:
+    Description: OpenShift namespace containing the app
+    Type: String
+    Default: 'quarkuscoffee'
+  AppServiceAccount:
+    Description: OpenShift service account used by the app
+    Type: String
+    Default: 'quarkuscoffee-counter-dynamodb-sa'
+  AppRoleName:
+    Description: AWS role name used by the app
+    Type: String
+    Default: 'delegate-admin-quarkuscoffee-counter-dynamodb-role'
+  # DynamodbTableARN:
+  #   Description: AWS dynamodb table used by the app
+  #   Type: String
+  #   Default: 'arn:aws:dynamodb:us-east-1:167772905579:table/Orders'
 
 Conditions:
   istestEnv: !Equals [!Ref appenv, "sandbox"]
@@ -81,10 +109,9 @@ Resources:
       TableName:
         Fn::If:
         - istestEnv
-        - !Sub '${AWS::StackName}-Orders'
-        - Orders
+        - !Sub '${AWS::StackName}-${TableName}'
+        - !Sub '${TableName}'
  
-
       Tags:
         - Key: assignmentGroup
           Value: !Ref assignmentGroupParameter
@@ -98,9 +125,59 @@ Resources:
           Value: !Ref supportGroupParameter
         - Key: appCriticalityTier
           Value: !Ref appCriticalityParameter
+
+  AppRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref  AppRoleName
+      Description: Permits quarkus app read and write access to DynamoDB table
+      AssumeRolePolicyDocument: !Sub |
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "AllowOidcAssumeRole",
+              "Effect": "Allow",
+              "Action": "sts:AssumeRoleWithWebIdentity",
+              "Principal": {
+                "Federated": [
+                  "arn:aws:iam::${AWS::AccountId}:oidc-provider/${OidcIssuer}"
+                ]
+              },
+              "Condition": {
+                "StringEquals": {
+                  "${OidcIssuer}:aud": "sts.amazonaws.com",
+                  "${OidcIssuer}:sub": "system:serviceaccount:${AppNamespace}:${AppServiceAccount}"
+                }
+              }
+            }
+          ]
+        }
+      PermissionsBoundary: !Sub 'arn:aws:iam::${AWS::AccountId}:policy/cft-developer-boundary-policy'
+      Policies:
+      - PolicyName: AppPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Sid: PermitReadWriteOnlyAccessToApp
+            Effect: Allow
+            Action:
+            - dynamodb:BatchGetItem
+            - dynamodb:ConditionCheckItem
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:Query
+            - dynamodb:Scan
+            Resource:
+            - !GetAtt Orders.Arn
+
 Outputs:
   DynamodbTableARN:
     Value: !GetAtt Orders.Arn
     Description: Name of the newly created DynamoDB table
     Export:
-      Name: DynamodbTableARN
+      Name: OrdersIacTestDynamodbTableARN
+  AppRoleArn:
+    Description: Test app role ARN
+    Value: !GetAtt AppRole.Arn

@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::167772905579:role/delegate-admin-quarkuscoffee-counter-dynamodb-role
+  name: quarkuscoffee-counter-dynamodb-sa
+  namespace: quarkuscoffee

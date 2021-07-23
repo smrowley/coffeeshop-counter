@@ -52,7 +52,7 @@ spec:
               && echo $aws_cert > /tmp/aws-decoded.cer
               && keytool -import -noprompt -keystore $truststore_jks -file /tmp/aws-decoded.cer
               -storepass $password -alias service-aws-ca
-      serviceAccount: quarkuscoffee-service-account
+      serviceAccount: quarkuscoffee-counter-dynamodb-sa
       containers:
         - readinessProbe:
             httpGet:
