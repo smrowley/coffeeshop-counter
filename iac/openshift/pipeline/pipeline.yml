@@ -1,0 +1,73 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: counter-iac-aws-pipeline
+spec:
+  params:
+    - name: git-repo-url
+      type: string
+    - name: git-revision
+      type: string
+      description: Git revision to checkout (branch/tag/sha)
+    - name: context-dir
+      type: string
+    - name: template-file
+      type: string
+    - name: parameters-file
+      type: string
+    - name: capabilities-file
+      type: string
+    - name: aws-region
+      type: string
+      default: "us-east-1"
+    
+  workspaces:
+  - name: source-workspace
+  
+  tasks:
+  - name: clone-repo
+    taskRef:
+      name: git-clone
+      kind: ClusterTask
+    params:
+    - name: url
+      value: "$(params.git-repo-url)"
+    - name: revision
+      value: "$(params.git-revision)"
+    workspaces:  
+    - name: output
+      workspace: source-workspace
+
+  - name: validate-template
+    taskRef: 
+      name: aws-cli
+      kind: Task
+    params: 
+    - name: ARGS
+      value: ["cloudformation", "validate-template", "--template-body", "file:///workspace/source/$(params.context-dir)/$(params.template-file)", "--region", "$(params.aws-region)"]
+    runAfter:
+      - clone-repo
+    workspaces:
+    - name: source
+      workspace: source-workspace
+
+  - name: execute-template
+    taskRef: 
+      name: aws-cli-cloudformation
+      kind: Task
+    params: 
+    - name: template-file
+      value: $(params.template-file)
+    - name: parameters-file
+      value: $(params.parameters-file)
+    - name: capabilities-file
+      value: $(params.capabilities-file)
+    - name: context-dir
+      value: $(params.context-dir)
+    - name: region
+      value: $(params.aws-region)
+    runAfter:
+      - validate-template
+    workspaces:
+    - name: source
+      workspace: source-workspace

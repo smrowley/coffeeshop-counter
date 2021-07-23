@@ -1,0 +1,23 @@
+[
+    {
+      "ParameterKey": "OidcIssuer",
+      "ParameterValue": "/delta/openshift/ccoe-dev-vstfb/oidc_issuer"
+    }, 
+    {
+      "ParameterKey": "AppNamespace",
+      "ParameterValue": "quarkuscoffee"
+    },
+    {
+        "ParameterKey": "AppServiceAccount",
+        "ParameterValue": "quarkuscoffee-counter-dynamodb-sa"
+    },
+    {
+        "ParameterKey": "AppRoleName",
+        "ParameterValue": "delegate-admin-quarkuscoffee-counter-dynamodb-role"
+    },
+    {
+      "ParameterKey": "TableName",
+      "ParameterValue": "Orders"
+  }
+
+] 

@@ -1,0 +1,35 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: counter-iac-aws-pipeline-test
+  
+spec:
+  params:
+    - name: git-repo-url
+      value: https://git.delta.com/ccoe/implementation-patterns-wip/coffeeshop/counter.git
+    - name: git-revision
+      value: iac-dynamo-pipeline
+    - name: context-dir
+      value: iac/aws
+    - name: template-file
+      value: counter_DynamoDb.yaml
+    - name: parameters-file
+      value: counter_DynamoDb_parameters.json
+    - name: capabilities-file
+      value: counter_DynamoDb_capabilities.json
+
+  pipelineRef:
+    name: counter-iac-aws-pipeline
+ 
+  serviceAccountName: pipeline
+  serviceaccountNames:
+    - taskName: validate-template
+      serviceAccountName:  quarkuscoffee-counter-iac-aws-sa
+    - taskName: execute-template
+      serviceAccountName:  quarkuscoffee-counter-iac-aws-sa
+  timeout: 1h0m0s
+  workspaces:
+    - name: source-workspace
+      persistentVolumeClaim:
+        claimName: counter-iac-aws-workspace
+
