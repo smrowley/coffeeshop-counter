@@ -125,7 +125,8 @@ Resources:
           Value: !Ref supportGroupParameter
         - Key: appCriticalityTier
           Value: !Ref appCriticalityParameter
-
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES  
   AppRole:
     Type: AWS::IAM::Role
     Properties:
@@ -181,3 +182,8 @@ Outputs:
   AppRoleArn:
     Description: Test app role ARN
     Value: !GetAtt AppRole.Arn
+  DynamodbStreamARN:
+    Value: !GetAtt Orders.StreamArn 
+    Description: Name of the newly created DynamoDB Stream 
+    Export: 
+      Name: DynamodbOrdersTableStreamARN
