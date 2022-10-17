@@ -18,6 +18,7 @@ public class KafkaService {
     @Inject
     OrderService orderService;
 
+    /*
     @Incoming("orders-in")
     @Blocking
     @Transactional
@@ -26,6 +27,7 @@ public class KafkaService {
         logger.debug("PlaceOrderCommand received: {}", placeOrderCommand);
         orderService.onOrderIn(placeOrderCommand);
     }
+    */
 
     @Incoming("orders-up")
     @Blocking

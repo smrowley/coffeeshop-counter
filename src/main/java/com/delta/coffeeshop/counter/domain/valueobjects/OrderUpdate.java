@@ -7,17 +7,14 @@ import com.delta.coffeeshop.counter.domain.OrderStatus;
 
 public class OrderUpdate {
 
-    public final String orderId;
+    public String orderId;
+    public String itemId;
+    public String name;
+    public Item item;
+    public OrderStatus status;
+    public String madeBy;
 
-    public final String itemId;
-
-    public final String name;
-
-    public final Item item;
-
-    public final OrderStatus status;
-
-    public final String madeBy;
+    public OrderUpdate() {}
 
     public OrderUpdate(final String orderId, final String itemId, final String name,
             final Item item, final OrderStatus status) {

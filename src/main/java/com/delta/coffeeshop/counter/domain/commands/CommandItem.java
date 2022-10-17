@@ -9,11 +9,11 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class CommandItem {
 
-    public final Item item;
+    public Item item;
+    public String name;
+    public BigDecimal price;
 
-    public final String name;
-
-    public final BigDecimal price;
+    public CommandItem() {}
 
     public CommandItem(Item item, String name, BigDecimal price) {
         this.item = item;

@@ -9,15 +9,13 @@ import com.delta.coffeeshop.counter.domain.Item;
  */
 public class OrderTicket {
 
-    private final String orderId;
+    private String orderId;
+    private String lineItemId;
+    private Item item;
+    private String name;
+    private Instant timestamp;
 
-    private final String lineItemId;
-
-    private final Item item;
-
-    private final String name;
-
-    private final Instant timestamp;
+    public OrderTicket() {}
 
     public OrderTicket(String orderId, String lineItemId, Item item, String name) {
         this.orderId = orderId;
